@@ -1,0 +1,34 @@
+% !TeX TS-program = pdflatexmk
+% !BIB TS-program = biber
+
+\documentclass[12pt,letterpaper,article]{memoir} % for a short document
+
+% Bibliography
+%\usepackage[authordate,strict,babel=other,bibencoding=inputenc,doi=false,isbn=false,annotation=true]{biblatex-chicago}
+%\addbibresource{refs.bib}
+
+
+\title{CSSS 504 Project Proposal}
+\author{Giles Goetz, Robin Gold, Peter Schmiedeskamp}
+\date{14 February 2014} % Delete this line to display the current date
+
+%%% BEGIN DOCUMENT
+\begin{document}
+\maketitle
+
+
+\chapter{Project Description}
+The City of Seattle installed automated bicycle counters on the Fremont bridge over a year ago. This means we now have over a year's worth of counts, reported hourly. The last time I systematically reviewed the literature was a little over two years ago. At that time, there was limited existing research describing aspects of seasonal variation in bicycling. While the new data available from Seattle is limited spatially, it does have the potential to tell us something about seasonal variation at that location.
+
+For the purposes of this assignment, I will simply look to predict daily aggregated bicycle counts from one weather-related independent variable (daily max temperature) harvested from the Forecast.io public API. A group project might expand on this to include a review of other weather-related variables including precipitation, wind speeds, etc. as well as to consider the disaggregated hourly totals.
+
+
+\chapter{Dataset Construction and Summary Statistics}
+Figure \ref{datamunge} documents the construction of this dataset from publicly accessible sources. From my constructed dataset, I am interested in two variables: \texttt{count} (the daily total of bicycles on the Fremont bridge divided by two) and \texttt{temperatureMax} (the maximum temperature for the day). 
+
+Figures \ref{uni} and \ref{unig} include statistical summaries and density plots of the two variables. Daily max temperatures range from 31 degrees to 82 degrees with a median of 56 and a standard deviation of 11. Daily aggregated bicycle counts (again, divided in half to account for return commutes) range from 185 to 2560, with a median of 1184 and standard deviation of 587. In addition, there are three missing values for bicycle counts. From the density plots, both variables appear to be roughly, though not perfectly, normally distributed.
+
+Figure \ref{bike-reg} graphically summarizes the relationship between these two variables using a scatterplot with OLS regression line and loess smooth added. From this plot, I believe it is appropriate to use a linear regression model to examine the relationship between these variables. Indeed, as a first pass, temperature alone appears to be a reasonably good predictor for the number of bicycles.
+
+%\printbibliography
+\end{document}
