@@ -1,5 +1,14 @@
 # History files
 .Rhistory
 
+# tex temp files
+*.aux
+*.bbl
+*.bcf
+*.log
+*.run.xml
+*.synctex.gz
+*.blg
+
 # Example code in package build process
 *-Ex.R
