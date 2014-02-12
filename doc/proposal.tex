@@ -4,9 +4,14 @@
 \documentclass[12pt,letterpaper,article]{memoir} % for a short document
 
 % Bibliography
-%\usepackage[authordate,strict,babel=other,bibencoding=inputenc,doi=false,isbn=false,annotation=true]{biblatex-chicago}
-%\addbibresource{refs.bib}
+\usepackage[authordate,strict,babel=other,bibencoding=inputenc,doi=false,isbn=false,annotation=true]{biblatex-chicago}
+\addbibresource{bike-counts-refs.bib}
 
+\setlrmarginsandblock{1in}{1in}{*}
+\setulmarginsandblock{.5in}{1in}{*}
+\checkandfixthelayout
+
+\pagestyle{empty}
 
 \title{CSSS 504 Project Proposal}
 \author{Giles Goetz, Robin Gold, Peter Schmiedeskamp}
@@ -17,18 +22,22 @@
 \maketitle
 
 
-\chapter{Project Description}
-The City of Seattle installed automated bicycle counters on the Fremont bridge over a year ago. This means we now have over a year's worth of counts, reported hourly. The last time I systematically reviewed the literature was a little over two years ago. At that time, there was limited existing research describing aspects of seasonal variation in bicycling. While the new data available from Seattle is limited spatially, it does have the potential to tell us something about seasonal variation at that location.
+\chapter*{Project Purpose and Description}
+This project proposes to develop statistical models for the purpose of quantifying the effect of seasonality and various weather-related conditions on bicycling volumes.  This study uses historic weather data and observed counts of bicyclists on a single high-bicycle-volume facility collected continuously for the span of one year.
 
-For the purposes of this assignment, I will simply look to predict daily aggregated bicycle counts from one weather-related independent variable (daily max temperature) harvested from the Forecast.io public API. A group project might expand on this to include a review of other weather-related variables including precipitation, wind speeds, etc. as well as to consider the disaggregated hourly totals.
+ A report prepared for the Puget Sound Regional Council (PSRC) reviewed various factors influencing bicycle counts (\cite{Ginger:2011aa}). That report, which considered other built-environment characteristics and time of day factors, corroborated findings of a relationship between bicycle counts, temperature (CITEXXXX), and precipitation (CITEXXXX). However, the report was not able to control for seasonal variation due to the lack of any year-long dataset. A recommendation of that report was for public agencies and researchers to consider installing automated counters that could be used to control for season.
+
+Since that time, in October, 2012, the City of Seattle installed automated bicycle counters on the Fremont Bridge, a major bicycling route in Seattle. The counters have been reporting hourly the number of bicycles crossing the bridge. In addition, historic weather data are available online through the Forecast.io public data service(CITEXXXX).
 
 
-\chapter{Dataset Construction and Summary Statistics}
-Figure \ref{datamunge} documents the construction of this dataset from publicly accessible sources. From my constructed dataset, I am interested in two variables: \texttt{count} (the daily total of bicycles on the Fremont bridge divided by two) and \texttt{temperatureMax} (the maximum temperature for the day). 
+\chapter*{Candidate Variables and Potential Issues}
+The response variable corresponds to daily aggregated bicycle counts. We have aggregated the hourly counts reported by the city into daily counts because we believe that is more reflective of travel mode choice---particularly for the common case of commuters. In addition, we have divided the aggregated north-bound and south-bound counts by two, as we anticipate that most trips will be two-way, and that the divided number best approximates the total number of bicyclists choosing to travel on a given day.
 
-Figures \ref{uni} and \ref{unig} include statistical summaries and density plots of the two variables. Daily max temperatures range from 31 degrees to 82 degrees with a median of 56 and a standard deviation of 11. Daily aggregated bicycle counts (again, divided in half to account for return commutes) range from 185 to 2560, with a median of 1184 and standard deviation of 587. In addition, there are three missing values for bicycle counts. From the density plots, both variables appear to be roughly, though not perfectly, normally distributed.
+Candidate predictors include temperature and precipitation. Additionally, we will consider seasonality, which can be conceptualized at different levels of temporal resolution (e.g. 12 months versus 4 seasons). Other important control variables include day of the week, and whether classes at the University of Washington are in session.
 
-Figure \ref{bike-reg} graphically summarizes the relationship between these two variables using a scatterplot with OLS regression line and loess smooth added. From this plot, I believe it is appropriate to use a linear regression model to examine the relationship between these variables. Indeed, as a first pass, temperature alone appears to be a reasonably good predictor for the number of bicycles.
+Two main issues exist that may need to be accounted for. The first is that, by virtue of working with counts, the assumption of constant variance may be violated. However, given the number of observations, this may be less of an issue. The second issue is more problematic in that there may be some dependence between weather observations (i.e. the weather one day is not fully independent of weather the next).
 
-%\printbibliography
+
+
+\printbibliography
 \end{document}
