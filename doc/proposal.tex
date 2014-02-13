@@ -1,7 +1,7 @@
 % !TeX TS-program = pdflatexmk
 % !BIB TS-program = biber
 
-\documentclass[12pt,letterpaper,article]{memoir} % for a short document
+\documentclass[11pt,letterpaper,article]{memoir} % for a short document
 
 % Bibliography
 \usepackage[authordate,strict,babel=other,bibencoding=inputenc,doi=false,isbn=false,annotation=true]{biblatex-chicago}
@@ -23,19 +23,19 @@
 
 
 \chapter*{Project Purpose and Description}
-This project proposes to develop statistical models for the purpose of quantifying the effect of seasonality and various weather-related conditions on bicycling volumes.  This study uses historic weather data and observed counts of bicyclists on a single high-bicycle-volume facility collected continuously for the span of one year.
+This project proposes to develop statistical models for the purpose of quantifying the effect of seasonality, controlling for various weather-related conditions, on bicycling volumes.  This study uses historic weather data and observed counts of bicyclists on a single high-bicycle-volume facility collected continuously for the span of one year (\cite{City-of-Seattle:aa}).
 
- A report prepared for the Puget Sound Regional Council (PSRC) reviewed various factors influencing bicycle counts (\cite{Ginger:2011aa}). That report, which considered other built-environment characteristics and time of day factors, corroborated findings of a relationship between bicycle counts, temperature (CITEXXXX), and precipitation (CITEXXXX). However, the report was not able to control for seasonal variation due to the lack of any year-long dataset. A recommendation of that report was for public agencies and researchers to consider installing automated counters that could be used to control for season.
+ A report prepared for the Puget Sound Regional Council (PSRC) reviewed various factors influencing bicycle counts (\cite{Bassok:2011aa}). That report, which considered other built-environment characteristics and time of day factors, corroborated findings by \textcite{City-of-Vancouver:1999aa,Niemeier:1996aa,Parkin:2008aa} of a relationship between bicycle counts, temperature and precipitation. However, the report was not able to control for seasonal variation due to the lack of any year-long dataset. A recommendation of that report was for public agencies and researchers to consider installing automated counters that could be used to control for season.
 
-Since that time, in October, 2012, the City of Seattle installed automated bicycle counters on the Fremont Bridge, a major bicycling route in Seattle. The counters have been reporting hourly the number of bicycles crossing the bridge. In addition, historic weather data are available online through the Forecast.io public data service(CITEXXXX).
+Since that time, in October, 2012, the City of Seattle installed automated bicycle counters on the Fremont Bridge, a major bicycling route in Seattle, thus enabling this study. The counters have been reporting hourly the number of bicycles crossing the bridge. In addition, historic weather data are available through the Forecast.io public data service (\cite{The-Dark-Sky-Company:aa}). We have linked these two data sets for the purposes of this study.
 
 
 \chapter*{Candidate Variables and Potential Issues}
-The response variable corresponds to daily aggregated bicycle counts. We have aggregated the hourly counts reported by the city into daily counts because we believe that is more reflective of travel mode choice---particularly for the common case of commuters. In addition, we have divided the aggregated north-bound and south-bound counts by two, as we anticipate that most trips will be two-way, and that the divided number best approximates the total number of bicyclists choosing to travel on a given day.
+The response variable is the daily aggregated bicycle count. We have aggregated the hourly counts reported by the city into daily counts because we believe that is more reflective of travel mode choice---particularly for the common case of commuters. In addition, we have divided the aggregated north-bound and south-bound counts by two, as we anticipate that most trips will be two-way, and that the divided number best approximates the total number of bicyclists choosing to travel on a given day.
 
-Candidate predictors include temperature and precipitation. Additionally, we will consider seasonality, which can be conceptualized at different levels of temporal resolution (e.g. 12 months versus 4 seasons). Other important control variables include day of the week, and whether classes at the University of Washington are in session.
+Candidate predictors include temperature and precipitation as they are consistent with the literature. Importantly, we will consider seasonality, which can be conceptualized at different levels of temporal resolution (e.g. 12 months versus 4 seasons). Other control variables include day of the week, and whether classes at the University of Washington are in session.
 
-Two main issues exist that may need to be accounted for. The first is that, by virtue of working with counts, the assumption of constant variance may be violated. However, given the number of observations, this may be less of an issue. The second issue is more problematic in that there may be some dependence between weather observations (i.e. the weather one day is not fully independent of weather the next).
+There are two main issues that may need to be accounted for. The first is that, by virtue of working with counts, the assumption of constant variance may be violated. However, given the typically high bicycle volumes on the bridge, this may be less of an issue. The second issue is more problematic in that there may be some dependence between weather observations (i.e. the weather one day is not fully independent of weather the next).
 
 
 
