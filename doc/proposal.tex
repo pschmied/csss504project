@@ -24,11 +24,10 @@
 
 \chapter*{Project Description}
 This project proposes to develop a statistical model for predicting
-the volume of bicycle traffic on the Fremont bridge in a given day, by
+the volume of bicycle traffic per day on the Fremont bridge, by
 controlling for factors such as weather, season, and day of the week.
 Observed bicycle counts have been collected on the bridge since late
-2012 by an automated bicycle detection
-system.
+2012 by an automated bicycle detection system.
 
 A report prepared for the Puget Sound Regional Council (PSRC) reviewed
 various factors influencing bicycle counts, including
@@ -44,10 +43,9 @@ season.
 
 In October, 2012 the City of Seattle installed automated bicycle
 counters on the Fremont Bridge, a major bicycling route in Seattle.
-This project will therefore be able to take advantage of a full
-calendar year's worth of bicycle count data to draw conclusions about
-seasonal variations and other factors affecting the number of cyclists
-on a given day.
+This project will be able to take advantage of a year's worth 
+of bicycle count data to draw conclusions about seasonal variations and 
+other factors affecting the number of cyclists on a given day.
 
 \chapter*{Model Variables and Data Sources}
 The response variable is the daily aggregated bicycle count. An
@@ -69,7 +67,7 @@ distinction between bicycles traveling northbound or southbound.
 Temperature and precipitation will be considered as predictors for the
 bicycle count, consistent with existing literature. Historic weather
 data is available through the Forecast.io public data service
-(\cite{The-Dark-Sky-Company:aa}). Importantly, we will consider
+(\cite{The-Dark-Sky-Company:aa}). We will also consider
 seasonality, which can be conceptualized at different levels of
 temporal resolution (e.g. 12 months versus 4 seasons). Other control
 variables include day of the week, holidays, and whether classes at
@@ -80,9 +78,9 @@ We have thus far identified two potential issues that may need to be
 accounted for in the regression model. The first is that the
 assumption of constant variance may be violated, by virtue of working
 with count data. The second issue is that there may be some dependence
-between weather observations (i.e. the weather one day is not fully
-independent of weather the next), leaving some potential for
-auto-correlation in the data set.
+between weather observations because weather for any given day is 
+partially dependent on the previous day.  We will have to adjust the 
+model to deal with any correlation found.
 
 \printbibliography
 \end{document}
