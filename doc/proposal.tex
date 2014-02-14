@@ -1,7 +1,7 @@
 % !TeX TS-program = pdflatexmk
 % !BIB TS-program = biber
 
-\documentclass[11pt,letterpaper,article]{memoir} % for a short document
+\documentclass[10pt,letterpaper,article]{memoir} % for a short document
 
 % Bibliography
 \usepackage[authordate,strict,babel=other,bibencoding=inputenc,doi=false,isbn=false,annotation=true]{biblatex-chicago}
@@ -22,22 +22,67 @@
 \maketitle
 
 
-\chapter*{Project Purpose and Description}
-This project proposes to develop statistical models for the purpose of quantifying the effect of seasonality, controlling for various weather-related conditions, on bicycling volumes.  This study uses historic weather data and observed counts of bicyclists on a single high-bicycle-volume facility collected continuously for the span of one year (\cite{City-of-Seattle:aa}).
+\chapter*{Project Description}
+This project proposes to develop a statistical model for predicting
+the volume of bicycle traffic on the Fremont bridge in a given day, by
+controlling for factors such as weather, season, and day of the week.
+Observed bicycle counts have been collected on the bridge since late
+2012 by an automated bicycle detection
+system.
 
- A report prepared for the Puget Sound Regional Council (PSRC) reviewed various factors influencing bicycle counts (\cite{Bassok:2011aa}). That report, which considered other built-environment characteristics and time of day factors, corroborated findings by \textcite{City-of-Vancouver:1999aa,Niemeier:1996aa,Parkin:2008aa} of a relationship between bicycle counts, temperature and precipitation. However, the report was not able to control for seasonal variation due to the lack of any year-long dataset. A recommendation of that report was for public agencies and researchers to consider installing automated counters that could be used to control for season.
+A report prepared for the Puget Sound Regional Council (PSRC) reviewed
+various factors influencing bicycle counts, including
+built-environment characteristics and time of day
+factors(\cite{Bassok:2011aa}). This report corroborated findings by
+\textcite{City-of-Vancouver:1999aa,Niemeier:1996aa,Parkin:2008aa} of a
+relationship between bicycle counts, temperature and precipitation.
+However, the report was not able to control for seasonal variation due
+to the lack of a long-term, continuous dataset. A recommendation of
+the report was for public agencies and researchers to consider
+installing automated counters that could be used to control for
+season.
 
-Since that time, in October, 2012, the City of Seattle installed automated bicycle counters on the Fremont Bridge, a major bicycling route in Seattle, thus enabling this study. The counters have been reporting hourly the number of bicycles crossing the bridge. In addition, historic weather data are available through the Forecast.io public data service (\cite{The-Dark-Sky-Company:aa}). We have linked these two data sets for the purposes of this study.
+In October, 2012 the City of Seattle installed automated bicycle
+counters on the Fremont Bridge, a major bicycling route in Seattle.
+This project will therefore be able to take advantage of a full
+calendar year's worth of bicycle count data to draw conclusions about
+seasonal variations and other factors affecting the number of cyclists
+on a given day.
 
+\chapter*{Model Variables and Data Sources}
+The response variable is the daily aggregated bicycle count. An
+automated detection system which uses inductive loops installed in the
+sidewalk registers passing bicycles. The system then reports an hourly
+aggregate count of bicycles crossing the bridge on each side, and this
+count data is archived and made available on the City of
+Seattle website(\cite{City-of-Seattle:aa}).
 
-\chapter*{Candidate Variables and Potential Issues}
-The response variable is the daily aggregated bicycle count. We have aggregated the hourly counts reported by the city into daily counts because we believe that is more reflective of travel mode choice---particularly for the common case of commuters. In addition, we have divided the aggregated north-bound and south-bound counts by two, as we anticipate that most trips will be two-way, and that the divided number best approximates the total number of bicyclists choosing to travel on a given day.
+For this project, we chose to aggregate these hourly counts into daily
+counts in order to focus on the question of travel and commute mode
+choice in general, rather than on peak-hour volumes or similar hourly
+factors. Additionally, we have divided the aggregated north-bound and
+south-bound counts by two because we anticipate that most trips will
+be two-way. This also addresses the issue that, while bicycle traffic
+is two-way on both sides of the bridge, the inductive loops make no
+distinction between bicycles traveling northbound or southbound.
 
-Candidate predictors include temperature and precipitation as they are consistent with the literature. Importantly, we will consider seasonality, which can be conceptualized at different levels of temporal resolution (e.g. 12 months versus 4 seasons). Other control variables include day of the week, and whether classes at the University of Washington are in session.
+Temperature and precipitation will be considered as predictors for the
+bicycle count, consistent with existing literature. Historic weather
+data is available through the Forecast.io public data service
+(\cite{The-Dark-Sky-Company:aa}). Importantly, we will consider
+seasonality, which can be conceptualized at different levels of
+temporal resolution (e.g. 12 months versus 4 seasons). Other control
+variables include day of the week, holidays, and whether classes at
+the University of Washington are in session.
 
-There are two main issues that may need to be accounted for. The first is that, by virtue of working with counts, the assumption of constant variance may be violated. However, given the typically high bicycle volumes on the bridge, this may be less of an issue. The second issue is more problematic in that there may be some dependence between weather observations (i.e. the weather one day is not fully independent of weather the next).
-
-
+\chapter*{Additional Considerations}
+We have thus far identified two potential issues that may need to be
+accounted for in the regression model. The first is that the
+assumption of constant variance may be violated, by virtue of working
+with count data. The second issue is that there may be some dependence
+between weather observations (i.e. the weather one day is not fully
+independent of weather the next), leaving some potential for
+auto-correlation in the data set.
 
 \printbibliography
 \end{document}
