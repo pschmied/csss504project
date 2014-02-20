@@ -1,46 +1,13 @@
 ## Playing around with the data
 
-Fremont <- read.csv("C:/Users/dogfloss/Documents/GitHub/csss504project/data/weatherbike.csv")
+Fremont <- read.csv("C:/Users/Robin Gold/Documents/GitHub/csss504project/data/weatherbike.csv")
+
+##### DEFINING VARIABLES #######################
 
 date <- Fremont$Date
 count <- Fremont$count
 x <- Fremont$X
-
-## Plot the daily bike count data, with months as labels
-the_1st <- grep("*-01$", date)
-plot(date, count, xaxt="n", xlab="Date", ylab="Aggregate Bike Count", 
-	main="Aggregate Bike Count per day,  Jan. 1, 2013 - Dec. 31, 2013")
-axis(side=1, labels=month.abb, at=the_1st)
-
-
-## Create a dummy variable for each day of the week, with Monday baseline
-day <- seq(1, 365, 7)
-Tues <- ifelse((x %in% day), 1, 0)
-Wed <- ifelse((x %in% (day+1)), 1, 0)
-Thurs <- ifelse((x %in% (day+2)), 1, 0)
-Fri <- ifelse((x %in% (day+3)), 1, 0)
-Sat <- ifelse((x %in% (day+4)), 1, 0)
-Sun <- ifelse((x %in% (day+5)), 1, 0)
-
-## Create a dummy variable for holidays
-hols <- c("01-01", "01-21", "02-18", "05-27", "07-04", "09-02", "11-11", 
-	"11-28", "11-29", "12-24", "12-25")
-holiday <- numeric(length(x))
-for(i in 1:length(hols)){y <- grep(hols[i], date); holiday[y] <- 1}
-
-## Bike count linear model with day-of-week and holiday covariates
-datemod1 <- lm(count ~ Tues + Wed + Thurs + Fri + Sat + Sun + holiday)
-summary(datemod1)
-
-datemod2 <- lm(count ~ Fri + Sat + Sun + holiday)
-summary(datemod2) 
-
-weekend <- Sat + Sun
-datemod3 <- lm(count ~ Fri + weekend + holiday)
-summary(datemod3)
-
-## Culling some useful weather variables
-precip <- Fremont$precipProbability
+precip <- Fremont$precipIntensityMax
 min_temp <- Fremont$temperatureMin
 min_temp2 <- Fremont$apparentTemperatureMin
 max_temp <- Fremont$apparentTemperatureMax
@@ -55,6 +22,54 @@ visibility <- Fremont$visibility
 pressure <- Fremont$pressure
 sunset <- Fremont$sunsetTime
 
+
+## Create a dummy variable for each day of the week, with Monday baseline
+day <- seq(1, 365, 7)
+Tues <- ifelse((x %in% day), 1, 0)
+Wed <- ifelse((x %in% (day+1)), 1, 0)
+Thurs <- ifelse((x %in% (day+2)), 1, 0)
+Fri <- ifelse((x %in% (day+3)), 1, 0)
+Sat <- ifelse((x %in% (day+4)), 1, 0)
+Sun <- ifelse((x %in% (day+5)), 1, 0)
+weekend <- Sat + Sun
+
+
+## Create a dummy variable for holidays
+hols <- c("01-01", "01-21", "02-18", "05-27", "07-04", "09-02", "11-11", 
+	"11-28", "11-29", "12-24", "12-25", "12-31")
+holiday <- numeric(length(x))
+for(i in 1:length(hols)){y <- grep(hols[i], date); holiday[y] <- 1}
+
+
+## Create a "season" factor, based on Farmer's Almanac dates of Equinox
+season <- factor(date, levels=c("Winter", "Spring", "Summer", "Fall"))
+season[date] <- "Winter"
+season[x >= grep("2013-03-20", date) & x < grep("2013-06-21", date)] <- "Spring"
+season[x >= grep("2013-06-21", date) & x < grep("2013-09-22", date)] <- "Summer"
+season[x >= grep("2013-09-22", date) & x < grep("2013-12-21", date)] <- "Fall"
+
+
+########## SUMMARY PLOTS #####################
+
+## Plot the daily bike count data, with months as labels
+the_1st <- grep("*-01$", date)
+plot(date, count, xaxt="n", xlab="Date", ylab="Aggregate Bike Count", 
+	main="Aggregate Bike Count per day,  Jan. 1, 2013 - Dec. 31, 2013")
+axis(side=1, labels=month.abb, at=the_1st)
+
+
+########### LINEAR MODELS ####################
+
+## Bike count linear model with day-of-week and holiday covariates
+datemod1 <- lm(count ~ Tues + Wed + Thurs + Fri + Sat + Sun + holiday)
+summary(datemod1)
+
+datemod2 <- lm(count ~ Fri + Sat + Sun + holiday)
+summary(datemod2) 
+
+datemod3 <- lm(count ~ Fri + weekend + holiday)
+summary(datemod3)
+
 weathermod1 <- lm(count ~ min_temp + icon + precip + Fri + Sat + Sun + holiday, na.omit=TRUE)
 summary(weathermod1)  ## Uses the weather "icon" in place of windSpeed and such
 
@@ -66,12 +81,50 @@ weathermod3 <- lm(count ~ Fri + Sat + Sun + holiday
 	+ max_temp + precip + visibility + pressure)
 summary(weathermod3)  ## All factors highly significant, R-squared of 0.83
 
-weathermod4 <- weathermod3 <- lm(count ~ Tues + Wed + Thurs + Fri + Sat + Sun + holiday 
+weathermod4 <- lm(count ~ Tues + Wed + Thurs + Fri + Sat + Sun + holiday 
 	+ max_temp + precip + visibility + pressure)
 summary(weathermod4)  ## The additional days of the week are still not significant
 
-## Define the seasons
-months <- factor(date, levels=c("Winter", "Spring", "Summer", "Fall"))
-months[grep("-12-", date)] <- "Winter"
-months[grep("-04-", date)] <- "Spring"
+## Model which adds "season" covariate
+mod5 <- lm(count ~ Fri + Sat + Sun + holiday + season
+	+ max_temp + precip + visibility + pressure)
+summary(mod5)
+plot(mod5$fit, mod5$resid);  abline(c(0,0), col="red")
+date[which(mod5$resid == min(mod5$resid))]
+date[which(mod5$resid == max(mod5$resid))]
+
+
+## Create a separate model for each day of the week
+
+mydat <- data.frame(count, date, holiday, season, min_temp, max_temp, precip, visibility, pressure, 
+	Tues, Wed, Thurs, Fri, Sat, Sun, weekend, cloudCover, windSpeed, humidity)
+head(mydat)
+
+dTues <- subset(mydat, Tues == 1)
+m1Tues <- lm(count ~ holiday + season + max_temp + precip + visibility + pressure, 
+	data = dTues)
+summary(m1Tues)
+
+Winter <- ifelse(dTues$season == "Winter", 1, 0)  
+m2Tues <- lm(count ~ holiday + Winter + max_temp + precip, data = dTues)
+summary(m2Tues)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
