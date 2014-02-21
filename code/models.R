@@ -1,27 +1,31 @@
-## Playing around with the data
-
-Fremont <- read.csv("C:/Users/Robin Gold/Documents/GitHub/csss504project/data/weatherbike.csv")
+# Libraries
+# install.packages(c("lmtest", "plyr", "lubridate"))
 library(lmtest)
+library(plyr)
+library(lubridate)
+
+# Ingest our dataset
+fremont <- read.csv("./data/weatherbike.csv", header=TRUE)
 
 ##### DEFINING VARIABLES #######################
 
-date <- Fremont$Date
-count <- Fremont$count
-x <- Fremont$X
-precip <- Fremont$precipIntensityMax
-min_temp <- Fremont$temperatureMin
-min_temp2 <- Fremont$apparentTemperatureMin
-max_temp <- Fremont$apparentTemperatureMax
+date <- fremont$Date
+count <- fremont$count
+x <- fremont$X
+precip <- fremont$precipIntensityMax
+min_temp <- fremont$temperatureMin
+min_temp2 <- fremont$apparentTemperatureMin
+max_temp <- fremont$apparentTemperatureMax
 
-icon <- Fremont$icon;  
+icon <- fremont$icon;  
 icon[which(icon=="partly-cloudy-night")] <- "partly-cloudy-day"
 
-cloudCover <- Fremont$cloudCover
-windSpeed <- Fremont$windSpeed
-humidity <- Fremont$humidity
-visibility <- Fremont$visibility
-pressure <- Fremont$pressure
-daylight <- Fremont$sunsetTime - Fremont$sunriseTime
+cloudCover <- fremont$cloudCover
+windSpeed <- fremont$windSpeed
+humidity <- fremont$humidity
+visibility <- fremont$visibility
+pressure <- fremont$pressure
+daylight <- fremont$sunsetTime - fremont$sunriseTime
 
 
 ## Create a dummy variable for each day of the week, with Monday baseline
