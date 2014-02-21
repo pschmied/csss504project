@@ -1,6 +1,7 @@
 ## Playing around with the data
 
 Fremont <- read.csv("C:/Users/Robin Gold/Documents/GitHub/csss504project/data/weatherbike.csv")
+library(lmtest)
 
 ##### DEFINING VARIABLES #######################
 
@@ -20,7 +21,7 @@ windSpeed <- Fremont$windSpeed
 humidity <- Fremont$humidity
 visibility <- Fremont$visibility
 pressure <- Fremont$pressure
-sunset <- Fremont$sunsetTime
+daylight <- Fremont$sunsetTime - Fremont$sunriseTime
 
 
 ## Create a dummy variable for each day of the week, with Monday baseline
@@ -49,16 +50,33 @@ season[x >= grep("2013-06-21", date) & x < grep("2013-09-22", date)] <- "Summer"
 season[x >= grep("2013-09-22", date) & x < grep("2013-12-21", date)] <- "Fall"
 
 
+## Dummy variable for UW academic year
+UW <- ifelse(x < grep("2013-06-14", date) | x >= grep("2013-09-25", date), 1, 0)
+
+
+####### BEST WORKING MODEL #############################
+
+bestmod <- lm(count ~ Fri + Sat + Sun + holiday + UW
+	 + daylight + max_temp + precip + cloudCover + x)
+summary(bestmod) 
+acf(bestmod$resid)
+dwtest(bestmod)
+plot(bestmod$resid);  abline(h=0, col="red")
+
+
 ########## SUMMARY PLOTS #####################
 
-## Plot the daily bike count data, with months as labels
+## Daily bike count data, with months as labels
 the_1st <- grep("*-01$", date)
 plot(date, count, xaxt="n", xlab="Date", ylab="Aggregate Bike Count", 
 	main="Aggregate Bike Count per day,  Jan. 1, 2013 - Dec. 31, 2013")
 axis(side=1, labels=month.abb, at=the_1st)
 
+## Plot pairs for variables in bestmod
+pairs(cbind(count, daylight, max_temp, precip, cloudCover, x))
 
-########### LINEAR MODELS ####################
+
+####### SOME MODELS PREVIOUSLY TESTED #########
 
 ## Bike count linear model with day-of-week and holiday covariates
 datemod1 <- lm(count ~ Tues + Wed + Thurs + Fri + Sat + Sun + holiday)
@@ -94,6 +112,8 @@ date[which(mod5$resid == min(mod5$resid))]
 date[which(mod5$resid == max(mod5$resid))]
 
 
+########################################################
+
 ## Create a separate model for each day of the week
 
 mydat <- data.frame(count, date, holiday, season, min_temp, max_temp, precip, visibility, pressure, 
@@ -101,7 +121,7 @@ mydat <- data.frame(count, date, holiday, season, min_temp, max_temp, precip, vi
 head(mydat)
 
 dTues <- subset(mydat, Tues == 1)
-m1Tues <- lm(count ~ holiday + season + max_temp + precip + visibility + pressure, 
+m1Tues <- lm(count ~ holiday + daylight + max_temp + precip + visibility + pressure, 
 	data = dTues)
 summary(m1Tues)
 
