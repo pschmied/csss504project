@@ -1,35 +1,35 @@
 ## Playing around with the data
 
-Fremont <- read.csv("C:/Users/dogfloss/Documents/GitHub/csss504project/data/weatherbike.csv")
+fremont <- read.csv("../data/weatherbike.csv")
 library(lmtest)
 
 ##### DEFINING VARIABLES #######################
 
-date <- Fremont$Date
-count <- Fremont$count
-x <- Fremont$X
+date <- fremont$Date
+count <- fremont$count
+x <- fremont$X
 
-precip <- Fremont$precipIntensityMax
-precip2 <- Fremont$precipIntensity
-precipType <- Fremont$precipType
-precipTime <- Fremont$precipIntensityMaxTime
+precip <- fremont$precipIntensityMax
+precip2 <- fremont$precipIntensity
+precipType <- fremont$precipType
+precipTime <- fremont$precipIntensityMaxTime
 
-min_temp <- Fremont$temperatureMin
-min_temp2 <- Fremont$apparentTemperatureMin
-max_temp <- Fremont$temperatureMax
-max_temp2 <- Fremont$apparenttemperatureMax
+min_temp <- fremont$temperatureMin
+min_temp2 <- fremont$apparentTemperatureMin
+max_temp <- fremont$temperatureMax
+max_temp2 <- fremont$apparenttemperatureMax
 
-icon <- Fremont$icon;  
+icon <- fremont$icon;  
 icon[which(icon=="partly-cloudy-night")] <- "partly-cloudy-day"
 
-cloudCover <- Fremont$cloudCover
-windSpeed <- Fremont$windSpeed
-humidity <- Fremont$humidity
-visibility <- Fremont$visibility
-pressure <- Fremont$pressure
-daylight <- Fremont$sunsetTime - Fremont$sunriseTime
-dewPoint <- Fremont$dewPoint
-moonPhase <- Fremont$moonPhase
+cloudCover <- fremont$cloudCover
+windSpeed <- fremont$windSpeed
+humidity <- fremont$humidity
+visibility <- fremont$visibility
+pressure <- fremont$pressure
+daylight <- fremont$sunsetTime - fremont$sunriseTime
+dewPoint <- fremont$dewPoint
+moonPhase <- fremont$moonPhase
 
 ## Create a dummy variable for each day of the week, with Monday baseline
 day <- seq(1, 365, 7)
