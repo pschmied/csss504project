@@ -1,7 +1,11 @@
 ## Playing around with the data
 
-fremont <- read.csv("../data/weatherbike.csv")
+fremont <- read.csv("./data/weatherbike.csv")
 library(lmtest)
+library(GGally)
+library(ggplot2)
+library(ggthemes)
+library(lubridate)
 
 ##### DEFINING VARIABLES #######################
 
