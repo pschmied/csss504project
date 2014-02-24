@@ -1,32 +1,35 @@
-# Libraries
-# install.packages(c("lmtest", "plyr", "lubridate"))
-library(lmtest)
-library(plyr)
-library(lubridate)
+## Playing around with the data
 
-# Ingest our dataset
-fremont <- read.csv("./data/weatherbike.csv", header=TRUE)
+Fremont <- read.csv("C:/Users/dogfloss/Documents/GitHub/csss504project/data/weatherbike.csv")
+library(lmtest)
 
 ##### DEFINING VARIABLES #######################
 
-date <- fremont$Date
-count <- fremont$count
-x <- fremont$X
-precip <- fremont$precipIntensityMax
-min_temp <- fremont$temperatureMin
-min_temp2 <- fremont$apparentTemperatureMin
-max_temp <- fremont$apparentTemperatureMax
+date <- Fremont$Date
+count <- Fremont$count
+x <- Fremont$X
 
-icon <- fremont$icon;  
+precip <- Fremont$precipIntensityMax
+precip2 <- Fremont$precipIntensity
+precipType <- Fremont$precipType
+precipTime <- Fremont$precipIntensityMaxTime
+
+min_temp <- Fremont$temperatureMin
+min_temp2 <- Fremont$apparentTemperatureMin
+max_temp <- Fremont$temperatureMax
+max_temp2 <- Fremont$apparenttemperatureMax
+
+icon <- Fremont$icon;  
 icon[which(icon=="partly-cloudy-night")] <- "partly-cloudy-day"
 
-cloudCover <- fremont$cloudCover
-windSpeed <- fremont$windSpeed
-humidity <- fremont$humidity
-visibility <- fremont$visibility
-pressure <- fremont$pressure
-daylight <- fremont$sunsetTime - fremont$sunriseTime
-
+cloudCover <- Fremont$cloudCover
+windSpeed <- Fremont$windSpeed
+humidity <- Fremont$humidity
+visibility <- Fremont$visibility
+pressure <- Fremont$pressure
+daylight <- Fremont$sunsetTime - Fremont$sunriseTime
+dewPoint <- Fremont$dewPoint
+moonPhase <- Fremont$moonPhase
 
 ## Create a dummy variable for each day of the week, with Monday baseline
 day <- seq(1, 365, 7)
@@ -54,8 +57,10 @@ season[x >= grep("2013-06-21", date) & x < grep("2013-09-22", date)] <- "Summer"
 season[x >= grep("2013-09-22", date) & x < grep("2013-12-21", date)] <- "Fall"
 
 
-## Dummy variable for UW academic year
-UW <- ifelse(x < grep("2013-06-14", date) | x >= grep("2013-09-25", date), 1, 0)
+## Variable for the UW academic year
+UW <- ifelse((x >= grep("2013-01-07", date) & x <= grep("2013-03-21", date)) | 
+	(x >= grep("2013-04-01", date) & x <= grep("2013-06-13", date)) |
+	(x >= grep("2013-09-25", date) & x <= grep("2013-12-12", date)), 1, 0)
 
 
 ####### BEST WORKING MODEL #############################
@@ -67,6 +72,13 @@ acf(bestmod$resid)
 dwtest(bestmod)
 plot(bestmod$resid);  abline(h=0, col="red")
 
+reduced_autocorr <- lm(count ~ Sat + Sun + holiday + UW
+	 + daylight + max_temp + precip + cloudCover + x + precipTime)
+summary(reduced_autocorr) 
+acf(reduced_autocorr$resid)
+dwtest(reduced_autocorr)
+
+
 
 ########## SUMMARY PLOTS #####################
 
@@ -77,7 +89,8 @@ plot(date, count, xaxt="n", xlab="Date", ylab="Aggregate Bike Count",
 axis(side=1, labels=month.abb, at=the_1st)
 
 ## Plot pairs for variables in bestmod
-pairs(cbind(count, daylight, max_temp, precip, cloudCover, x))
+pairs(cbind(count, daylight, max_temp, precip, cloudCover, x), 
+	pch=20, col="darkblue")
 
 
 ####### SOME MODELS PREVIOUSLY TESTED #########
@@ -120,21 +133,59 @@ date[which(mod5$resid == max(mod5$resid))]
 
 ## Create a separate model for each day of the week
 
-mydat <- data.frame(count, date, holiday, season, min_temp, max_temp, precip, visibility, pressure, 
-	Tues, Wed, Thurs, Fri, Sat, Sun, weekend, cloudCover, windSpeed, humidity)
+mydat <- data.frame(count, date, holiday, season, min_temp, max_temp, precip, 
+	visibility, pressure, Tues, Wed, Thurs, Fri, Sat, Sun, weekend, 
+	cloudCover, windSpeed, humidity, UW, daylight, x)
 head(mydat)
 
+dMon <- subset(mydat, Tues + Wed + Thurs + Fri + Sat + Sun == 0)
+mMon <- lm(count ~ holiday + UW + daylight + max_temp + precip + cloudCover + x,
+	data = dMon)
+summary(mMon)
+acf(mMon$resid)
+dwtest(mMon)  ## p-val 0.76
+
 dTues <- subset(mydat, Tues == 1)
-m1Tues <- lm(count ~ holiday + daylight + max_temp + precip + visibility + pressure, 
+mTues <- lm(count ~ holiday + UW + daylight + max_temp + precip + cloudCover + x,
 	data = dTues)
-summary(m1Tues)
+summary(mTues)
+acf(mTues$resid)
+dwtest(mTues)  ## p-val 0.77
 
-Winter <- ifelse(dTues$season == "Winter", 1, 0)  
-m2Tues <- lm(count ~ holiday + Winter + max_temp + precip, data = dTues)
-summary(m2Tues)
+dWed <- subset(mydat, Wed == 1)
+mWed <- lm(count ~ holiday + UW + daylight + max_temp + precip + cloudCover + x,
+	data = dWed)
+summary(mWed)
+acf(mWed$resid)
+dwtest(mWed)  ## p-val 0.02
 
+dThurs <- subset(mydat, Thurs == 1)
+mThurs <- lm(count ~ holiday + UW + daylight + max_temp + precip + cloudCover + x,
+	data = dThurs)
+summary(mThurs)
+acf(mThurs$resid)
+dwtest(mThurs)  ## p-val 0.12
 
+dFri <- subset(mydat, Fri == 1)
+mFri <- lm(count ~ UW + daylight + max_temp + precip + cloudCover + x,
+	data = dFri)
+summary(mFri)
+acf(mFri$resid)
+dwtest(mFri)  ## p-val 0.16
 
+dSat <- subset(mydat, Sat == 1)
+mSat <- lm(count ~ UW + daylight + max_temp + precip + cloudCover + x,
+	data = dSat)
+summary(mSat)
+acf(mSat$resid)
+dwtest(mSat)  ## p-val 0.16
+
+dSun <- subset(mydat, Sun == 1)
+mSun <- lm(count ~ UW + daylight + max_temp + precip + cloudCover + x,
+	data = dSun)
+summary(mSun)
+acf(mSun$resid)
+dwtest(mSun)  ## p-val 0.90
 
 
 
