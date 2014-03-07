@@ -1,6 +1,6 @@
 ## Playing around with the data
 
-fremont <- read.csv("./data/weatherbike.csv")
+fremont <- read.csv("../data/weatherbike.csv", header=TRUE)
 library(lmtest)
 library(GGally)
 library(ggplot2)
@@ -21,7 +21,7 @@ precipTime <- fremont$precipIntensityMaxTime
 min_temp <- fremont$temperatureMin
 min_temp2 <- fremont$apparentTemperatureMin
 max_temp <- fremont$temperatureMax
-max_temp2 <- fremont$apparenttemperatureMax
+max_temp2 <- fremont$apparentTemperatureMax
 
 icon <- fremont$icon;  
 icon[which(icon=="partly-cloudy-night")] <- "partly-cloudy-day"
@@ -66,22 +66,80 @@ UW <- ifelse((x >= grep("2013-01-07", date) & x <= grep("2013-03-21", date)) |
 	(x >= grep("2013-04-01", date) & x <= grep("2013-06-13", date)) |
 	(x >= grep("2013-09-25", date) & x <= grep("2013-12-12", date)), 1, 0)
 
+## Create a variable for yesterday's precip
+yesterday <- numeric(length(precip))
+for(i in 2:length(yesterday)){yesterday[i] <- precip[i-1]}
+yesterday[1] <- yesterday[2]
+
+last3days <- numeric(length(precip))
+for(i in 4:length(last3days)){last3days[i] <- mean(precip[(i-3):(i-1)])}
+last3days[3] <- mean(precip[1:2])
+last3days[1:2] <- precip[1]
+
+## Take care of the last data point being NA for precip variable
+precip[365] <- precip[364]
+
 
 ####### BEST WORKING MODEL #############################
 
 bestmod <- lm(count ~ Fri + Sat + Sun + holiday + UW
 	 + daylight + max_temp + precip + cloudCover + x)
 summary(bestmod) 
+AIC(bestmod)
+BIC(bestmod)
 acf(bestmod$resid)
 dwtest(bestmod)
 plot(bestmod$resid);  abline(h=0, col="red")
+## bestmod adjusted R-sq = 0.8739;  AIC = 3944;  BIC 3988;  DW test p-val 1e-07
 
-reduced_autocorr <- lm(count ~ Sat + Sun + holiday + UW
-	 + daylight + max_temp + precip + cloudCover + x + precipTime)
-summary(reduced_autocorr) 
-acf(reduced_autocorr$resid)
-dwtest(reduced_autocorr)
+bestmod2 <- lm(count ~ Fri + Sat + Sun + holiday + UW
+	+ daylight + max_temp + precip + windSpeed)
+## bestmod2 is mod4 below;  selected based on highest AIC/BIC
+## mod4 adjusted R-sq = 0.8492;  AIC = 5010;  BIC 5053;  DW test p-val 8e-09
 
+
+####### MODELS WITH YESTERDAY'S WEATHER, INTERACTION TERMS, ETC. #####
+
+mod2 <- lm(count ~ Fri + Sat + Sun + holiday + UW
+	+ daylight + max_temp + precip)
+summary(mod2); AIC(mod2); BIC(mod2); acf(mod2$resid); dwtest(mod2)
+## mod2 adjusted R-sq = 0.8441;  AIC = 5021;  BIC 5060;  DW test p-val 5e-09
+## This is just bestmod without the faulty cloudCover variable.
+## AIC and BIC went way up by getting rid of it, but adjusted R-sq went down by .03
+
+mod3 <- lm(count ~ Fri + Sat + Sun + holiday + UW
+	+ daylight + max_temp + precip + windSpeed + yesterday)
+summary(mod3); AIC(mod3); BIC(mod3); acf(mod3$resid); dwtest(mod3)
+## mod3 adjusted R-sq = 0.8528;  AIC = 5002;  BIC 5049;  DW test p-val 7e-10
+## Inclusion of yesterday's weather variable makes auto-correlation worse :(
+## last3days precip variable was insignificant when tested
+
+mod4 <- lm(count ~ Fri + Sat + Sun + holiday + UW
+	+ daylight + max_temp + precip + windSpeed)
+summary(mod4); AIC(mod4); BIC(mod4); acf(mod4$resid); dwtest(mod4)
+## mod4 adjusted R-sq = 0.8492;  AIC = 5010;  BIC 5053;  DW test p-val 8e-09
+## Without cloudCover in the model, windSpeed is highly significant.
+
+mod5 <- lm(count ~ Fri + Sat + Sun + holiday + UW
+	+ daylight + max_temp + precip + windSpeed + humidity)
+summary(mod5); AIC(mod5); BIC(mod5); acf(mod5$resid); dwtest(mod5)
+## mod5 adjusted R-sq = 0.8584;  AIC = 4988;  BIC 5035;  DW test p-val 3e-08
+## humidity is highly significant also, but AIC/BIC penalize for added variable
+## dewPoint can subsitute for humidity, but humidity is slightly better.
+
+mod6 <- lm(count ~ Fri + Sat + Sun + holiday + UW
+	+ daylight + max_temp + precip + windSpeed + dewPoint 
+	+ windSpeed*max_temp + windSpeed*precip + daylight*precip + humidity*precip)
+summary(mod6); AIC(mod6); BIC(mod6); acf(mod6$resid); dwtest(mod6)
+## I played around with these and other interaction terms, didn't find any significant
+
+mod7 <- lm(count ~ Fri + Sat + Sun + holiday + UW
+	+ daylight + I(max_temp^3) + precip + windSpeed + humidity)
+summary(mod7); AIC(mod7); BIC(mod7); acf(mod7$resid); dwtest(mod7)
+## mod7 adjusted R-sq = 0.8517;  AIC = 5005;  BIC 5052;  DW test p-val 8e-10
+## Played around with various higher-order terms; no dramatic improvements found.
+
+plot(mod7$resid);  abline(h=0, col="red")
 
 
 ########## SUMMARY PLOTS #####################
@@ -95,6 +153,24 @@ axis(side=1, labels=month.abb, at=the_1st)
 ## Plot pairs for variables in bestmod
 pairs(cbind(count, daylight, max_temp, precip, cloudCover, x), 
 	pch=20, col="darkblue")
+
+## Individual variable plots, to look for problems
+plot(cloudCover) ## has lots of NAs in latter half of year
+plot(daylight) ## perfect sinusoid, as expected
+plot(windSpeed) ## very scattered, looks legit
+plot(humidity) ## roughly inverse to daylight, but with significant scatter
+plot(visibility) ## interesting shape, no problems
+plot(pressure) ## similar shape to humidity
+plot(dewPoint) ## possibly-suspicious drop-off in values at end of year
+plot(moonPhase) ## linear trend by month
+plot(precip) ## has a lot of zeroes, but looks legit
+plot(precip2) ## similar to precip, but with even more zeroes
+plot(precipTime) ## perfectly linear;  don't know what this variable means, but don't use.
+plot(min_temp) ## roughly sinusoidal, large correlation w/ daylight
+plot(min_temp2) ## very similar to min_temp
+plot(max_temp) ## very similar to min_temp
+plot(max_temp2) ## also very similar to min_temp
+
 
 
 ####### SOME MODELS PREVIOUSLY TESTED #########
