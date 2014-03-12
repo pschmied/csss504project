@@ -6,6 +6,8 @@ library(GGally)
 library(ggplot2)
 library(ggthemes)
 library(lubridate)
+library(faraway)
+library(MASS)
 
 ##### DEFINING VARIABLES #######################
 
@@ -94,11 +96,69 @@ plot(bestmod$resid);  abline(h=0, col="red")
 
 bestmod2 <- lm(count ~ Fri + Sat + Sun + holiday + UW
 	+ daylight + max_temp + precip + windSpeed)
+summary(bestmod2)
 ## bestmod2 is mod4 below;  selected based on highest AIC/BIC
 ## mod4 adjusted R-sq = 0.8492;  AIC = 5010;  BIC 5053;  DW test p-val 8e-09
 
+stepmod <- lm(count ~ Fri + Sat + Sun + holiday + UW
+	+ daylight + max_temp + precip + windSpeed + pressure + humidity)
+summary(stepmod); AIC(stepmod); BIC(stepmod); acf(stepmod$resid); dwtest(stepmod)
+## stepmod adjusted R-sq = 0.8619;  AIC = 4980;  BIC 5030;  DW test p-val 9e-10
+ 
 
-####### MODELS WITH YESTERDAY'S WEATHER, INTERACTION TERMS, ETC. #####
+
+########## SUMMARY PLOTS #####################
+
+## Daily bike count data, with months as labels
+the_1st <- grep("*-01$", date)
+plot(date, count, xaxt="n", xlab="Date", ylab="Aggregate Bike Count", 
+	main="Aggregate Bike Count per day,  Jan. 1, 2013 - Dec. 31, 2013")
+axis(side=1, labels=month.abb, at=the_1st)
+
+## Plot pairs for variables in bestmod
+pairs(cbind(count, daylight, max_temp, precip, cloudCover, x), 
+	pch=20, col="darkblue")
+
+## Leverages plot
+halfnorm(lm.influence(bestmod2)$hat, ylab="Leverages")
+date[177]  ## June 26, was a random Wednesday
+date[241]  ## August 29, was a random Thursday (right before Bumbershoot)
+
+## Q-Q plot 
+qqnorm(stdres(bestmod2), main="Q-Q plot for standardized residuals")
+abline(0,1, col="red")
+date[which(stdres(bestmod2)== min(stdres(bestmod2)))]  ## June 14, last day of exams
+date[which(stdres(bestmod2)< -3)]  ## May 27th, Monday, Memorial Day
+
+## Cook's distance
+cook <- cooks.distance(bestmod2)
+halfnorm(cook, 3, labs=date, ylab="Cook's distances")
+
+## Individual variable influence plots (see lecture 18 slide 43 et al.)
+
+
+
+##### Individual variable plots, to look for problems #########
+
+plot(cloudCover) ## has lots of NAs in latter half of year
+plot(daylight) ## perfect sinusoid, as expected
+plot(windSpeed) ## very scattered, looks legit
+plot(humidity) ## roughly inverse to daylight, but with significant scatter
+plot(visibility) ## interesting shape, no problems
+plot(pressure) ## similar shape to humidity
+plot(dewPoint) ## possibly-suspicious drop-off in values at end of year
+plot(moonPhase) ## linear trend by month
+plot(precip) ## has a lot of zeroes, but looks legit
+plot(precip2) ## similar to precip, but with even more zeroes
+plot(precipTime) ## perfectly linear;  don't know what this variable means, but don't use.
+plot(min_temp) ## roughly sinusoidal, large correlation w/ daylight
+plot(min_temp2) ## very similar to min_temp
+plot(max_temp) ## very similar to min_temp
+plot(max_temp2) ## also very similar to min_temp
+
+
+
+####### SOME MODELS PREVIOUSLY TESTED #########
 
 mod2 <- lm(count ~ Fri + Sat + Sun + holiday + UW
 	+ daylight + max_temp + precip)
@@ -142,38 +202,6 @@ summary(mod7); AIC(mod7); BIC(mod7); acf(mod7$resid); dwtest(mod7)
 plot(mod7$resid);  abline(h=0, col="red")
 
 
-########## SUMMARY PLOTS #####################
-
-## Daily bike count data, with months as labels
-the_1st <- grep("*-01$", date)
-plot(date, count, xaxt="n", xlab="Date", ylab="Aggregate Bike Count", 
-	main="Aggregate Bike Count per day,  Jan. 1, 2013 - Dec. 31, 2013")
-axis(side=1, labels=month.abb, at=the_1st)
-
-## Plot pairs for variables in bestmod
-pairs(cbind(count, daylight, max_temp, precip, cloudCover, x), 
-	pch=20, col="darkblue")
-
-## Individual variable plots, to look for problems
-plot(cloudCover) ## has lots of NAs in latter half of year
-plot(daylight) ## perfect sinusoid, as expected
-plot(windSpeed) ## very scattered, looks legit
-plot(humidity) ## roughly inverse to daylight, but with significant scatter
-plot(visibility) ## interesting shape, no problems
-plot(pressure) ## similar shape to humidity
-plot(dewPoint) ## possibly-suspicious drop-off in values at end of year
-plot(moonPhase) ## linear trend by month
-plot(precip) ## has a lot of zeroes, but looks legit
-plot(precip2) ## similar to precip, but with even more zeroes
-plot(precipTime) ## perfectly linear;  don't know what this variable means, but don't use.
-plot(min_temp) ## roughly sinusoidal, large correlation w/ daylight
-plot(min_temp2) ## very similar to min_temp
-plot(max_temp) ## very similar to min_temp
-plot(max_temp2) ## also very similar to min_temp
-
-
-
-####### SOME MODELS PREVIOUSLY TESTED #########
 
 ## Bike count linear model with day-of-week and holiday covariates
 datemod1 <- lm(count ~ Tues + Wed + Thurs + Fri + Sat + Sun + holiday)
