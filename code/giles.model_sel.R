@@ -93,6 +93,11 @@ sel_data.fac2 <- data.frame(count=count, Days=Days.sub, holiday=as.factor(holida
                            windSpeed=windSpeed, pressure=pressure, visibility=visibility,
                            humidity=humidity)
 
+sel_data.fac3 <- data.frame(count=count, Days=Days.sub, holiday=as.factor(holiday),
+                            UW=as.factor(UW), daylight=daylight, max_temp=max_temp, precip=precip,
+                            windSpeed=windSpeed, pressure=pressure, visibility=visibility,
+                            humidity=humidity,x=x)
+
 # First model Selection - Didn't use this one
 mod_sel <- regsubsets(count ~ Fri + Sat + Sun + holiday + UW +
                       daylight + max_temp + precip + windSpeed + 
@@ -136,12 +141,33 @@ checkmod.int <- lm(count ~ Days + holiday + UW +
                      max_temp*pressure + max_temp*daylight +
                      pressure*humidity + max_temp*windSpeed, data=sel_data.fac2)
 summary(checkmod.int)
+xtable(summary(checkmod.int)$coef, digits=2)
 
 # Summary plots
-plot(fitted(checkmod.int), resid(checkmod.int))
-plot(sel_data.fac2$count, fitted(checkmod.int))
-qqnorm(resid(checkmod.int))
-acf(resid(checkmod.int))
+ggpairs(sel_data.fac2[,-c(10)])
+
+the_1st <- grep("*-01$", date)
+plot(date, count, xaxt="n", xlab="Date", ylab="Aggregate Bike Count", 
+     main="Aggregate Bike Count per day,  Jan. 1, 2013 - Dec. 31, 2013")
+axis(side=1, labels=month.abb, at=the_1st)
+
+par(mfrow=c(2,2))
+plot(fitted(checkmod.int), resid(checkmod.int), xlab="Fitted Values", 
+     ylab="Residuals", main="Fitted Values vs Residuals")
+abline(h=0, col="red")
+plot(sel_data.fac2$count, fitted(checkmod.int), xlab="Response Values",
+     ylab="Fitted Values", main="Response vs Fitted Values")
+qqnorm(resid(checkmod.int), main="QQ-Plot of Residuals")
+qqline(resid(checkmod.int), col="red")
+acf(resid(checkmod.int), main="Auto-Correlation Estimation of Residuals", 
+    type="correlation")
+mtext(paste("DW =", round(dwtest(checkmod.int)$statistic, 4)), side=3,
+      adj=.97, line=-1)
+mtext(paste("P-Value =", format(dwtest(checkmod.int)$p.value, digits=4)), side=3,
+      adj=.97, line=-2)
+par(mfrow=c(1,1))
+
+halfnorm(resid(checkmod.int))
 
 ###
 # Spliting Data for powertransforms *work in progress*
@@ -197,3 +223,24 @@ checkmod.int.no_out <- lm(count ~ Days + holiday + UW +
                      max_temp*pressure + max_temp*daylight +
                      pressure*humidity + max_temp*windSpeed, data=sel_data.fac2, 
                      subset=-as.numeric(row.names(outliers)))
+
+comparing_outliers <- data.frame(ckmod.coef=summary(checkmod.int)$coef[,1], 
+                                 no_out.coef=summary(checkmod.int.no_out)$coef[,1],
+                                 ckmod.pval=summary(checkmod.int)$coef[,4],
+                                 no_out.pval=summary(checkmod.int.no_out)$coef[,4])
+
+# Playing around with halfnorm and the outliers
+halfnorm(stdres(checkmod.int), nlab=5,
+         labs=gsub("(\\d+)-(\\d+)-(\\d+)", "\\2/\\3", date, perl=T))
+
+####
+# Checking if X is still a valid predictor - It is not
+####
+mod_sel4 <- regsubsets(count ~ ., data=sel_data.fac3, nvmax=20)
+mod_sel4.sum <- summary(mod_sel4)
+data.frame(rsq=mod_sel4.sum$rsq, adjr2=mod_sel4.sum$adjr2,
+           cp=mod_sel4.sum$cp, bic=mod_sel4.sum$bic)
+anova(lm(count ~ Days + holiday + UW + daylight + max_temp + precip + 
+           windSpeed + pressure + humidity, data=sel_data.fac3),
+      lm(count ~ Days + holiday + UW + daylight + max_temp + precip + 
+           windSpeed + pressure + humidity + x, data=sel_data.fac3))
