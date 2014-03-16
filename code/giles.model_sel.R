@@ -167,8 +167,6 @@ mtext(paste("P-Value =", format(dwtest(checkmod.int)$p.value, digits=4)), side=3
       adj=.97, line=-2)
 par(mfrow=c(1,1))
 
-halfnorm(resid(checkmod.int))
-
 ###
 # Spliting Data for powertransforms *work in progress*
 ###
@@ -213,9 +211,12 @@ range(studres(checkmod.int))
 qqnorm(stdres(checkmod.int))
 halfnorm(stdres(checkmod.int))
 
-outliers <- cbind(fitted=fitted(checkmod.int), count=count,
+outliers <- data.frame(date=gsub("\\d+-(\\d+)-(\\d+)", "\\1/\\2", as.character(date), perl=T),
+                  count=count,
+                  fitted=fitted(checkmod.int),
                   studres=studres(checkmod.int),
                   stdres=stdres(checkmod.int))[abs(stdres(checkmod.int))>2,]
+xtable(outliers, digits=2)
 
 checkmod.int.no_out <- lm(count ~ Days + holiday + UW +
                      daylight + max_temp + precip + windSpeed + 
@@ -231,7 +232,7 @@ comparing_outliers <- data.frame(ckmod.coef=summary(checkmod.int)$coef[,1],
 
 # Playing around with halfnorm and the outliers
 halfnorm(stdres(checkmod.int), nlab=5,
-         labs=gsub("(\\d+)-(\\d+)-(\\d+)", "\\2/\\3", date, perl=T))
+         labs=gsub("\\d+-(\\d+)-(\\d+)", "\\1/\\2", date, perl=T))
 
 ####
 # Checking if X is still a valid predictor - It is not
@@ -244,3 +245,25 @@ anova(lm(count ~ Days + holiday + UW + daylight + max_temp + precip +
            windSpeed + pressure + humidity, data=sel_data.fac3),
       lm(count ~ Days + holiday + UW + daylight + max_temp + precip + 
            windSpeed + pressure + humidity + x, data=sel_data.fac3))
+
+####
+# Influence
+####
+checkmod.int.inf <- influence(checkmod.int)
+par(mfrow=c(3,2))
+for (i in 7:12) {
+  qqnorml(checkmod.int.inf$coefficients[,i],
+          main=paste("Variable Influence Plot - Leaving Out", 
+                     colnames(checkmod.int.inf$coefficients)[i]))
+}
+par(mfrow=c(1,1))
+
+####
+# Cook's Plots
+####
+halfnorm(cooks.distance(checkmod.int), nlab=7,
+         labs=gsub("\\d+-(\\d+)-(\\d+)", "\\1/\\2", date, perl=T),
+         main="Cook's Distance Plot of Residuals With Labels as Dates")
+
+cutoff <- 4/((nrow(sel_data.fac2)-length(checkmod.int$coefficients)-2)) 
+plot(checkmod.int, which=4, cook.levels=cutoff, sub="")
